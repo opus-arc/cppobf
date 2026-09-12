@@ -1,0 +1,40 @@
+File list of COBF - the C/C++ Sourceocde Obfsucator/Shrouder
+
+readme.txt      abstract about COBF
+copyright.txt   copyright information
+files.txt       this list
+version.txt		version information
+
+
+etc/            various support files for COBF
+
+ c.tok          reserved keywords according to ANSI C
+ c.mak          predefined macros according to ANSI C
+ cansilib.tok   reserved identifiers used in the ANSI-C-library
+ cpp.tok        reserved keywords according to the ANSI C++ draft
+ cpplib.tok     some identifiers used by C++ libraries (extremly rudimentary!)
+
+ x86.tok        special keywords reserved for the x86 architecture 
+ pp_<xyz>(.bat) sample batch files for invoking the various preprocessors
+
+src/            contains sources in DOS text format;
+                the C++ sourcefiles have the extension "cpp"
+
+ win32\
+  cobf.dsw      Visual C++ 6.0 workspace
+  release\ 
+   cobf.exe_     Win32 console application for Windows 95 / Windows NT / XP
+                 Please rename to cobf.exe (reason: Symantec virus scanner detects WS.Reputation.1 which is clearly a false positive!)
+                
+
+
+doc/            some documentation about COBF
+
+ cobf.pdf       PDF document (readable e. g. by Adobe Acrobat Reader)
+
+demo/           various support files for invoking/testing COBF
+
+ demo_test.bat  demo batchfile for shrouding test.c under Win32
+ demo_token.inv common command line arguments for invoking COBF under DOS/Win32
+ test.c         demo file for shrouding
+ demo_cobf.bat  demo batchfile for shrouding the COBF sources under Win32

@@ -1,0 +1,4 @@
+CHECK
+DefineBObjectClass
+Id
+PRECONDITION

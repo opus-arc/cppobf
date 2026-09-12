@@ -1,0 +1,6 @@
+-t ..\etc\c.tok
+-m ..\etc\c.mak
+-t ..\etc\cpp.tok
+-t ..\etc\cansilib.tok
+-t ..\etc\cpplib.tok
+-t ..\etc\x86.tok

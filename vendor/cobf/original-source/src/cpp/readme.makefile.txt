@@ -1,0 +1,1 @@
+tested under Cygwin with gcc 3.4.4

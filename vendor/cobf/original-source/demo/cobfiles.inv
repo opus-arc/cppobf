@@ -1,0 +1,19 @@
+-hi b_def.h
+-hi b_alloc.h
+-hi b_str.h
+-hi b_obj.h
+-hi b_cont.h
+-hi b_set.h
+-hi b_tcont.h
+-hi lib.h
+-hi scan.h
+-hi scanproc.h
+b_obj.cpp
+b_alloc.cpp
+b_cont.cpp
+b_str.cpp
+b_array.cpp
+b_set.cpp
+cobf_lex.cpp
+lib.cpp
+main.cpp

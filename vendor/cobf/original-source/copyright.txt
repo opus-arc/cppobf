@@ -1,0 +1,40 @@
+
+===========================================================================
+This is COBF - The C/C++ Sourcecode Obfuscator/Shrouder
+===========================================================================
+
+A program by
+
+Bernhard Baier
+email:  bernhard.baier@gmx.net
+WWW:    http://home.arcor.de/bernhard.baier
+
+===========================================================================
+
+
+This program is copyrighted.
+
+This program may be freely distributed if the distribution includes
+completly the original source files and this copyright notice.
+
+If you make changes on the program without the explicit agreement of the 
+author of COBF the changed version must not distributed under the label COBF.
+Please notice also that COBF contains sourcecode (in the file  lex_yy.c), 
+that lies under the GNU GPL (GNU General Public License) of the 
+Free Software Foundation.
+In every case the original version must be provided with the shipment of the
+changed version.
+
+Processing of source files via COBF does not allude to the copyright of these
+source files.
+
+===========================================================================
+
+
+The author excludes every liability for damages which can arise from using
+COBF.
+
+The author is grateful for bug notices and improvement proposals.
+
+===========================================================================
+

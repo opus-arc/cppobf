@@ -1,0 +1,8 @@
+#!/bin/sh
+# Sample Preprocessing Script For COBF For Preprocssing Sources
+# Bernhard Baier 20.01.96
+# Works Fine With Linux/GCC
+# 1st arg: inputfile
+# 2nd arg: ouputfile
+echo Preprocessing $1
+cc -P -E $1 >$2

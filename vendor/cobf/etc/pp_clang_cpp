@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+echo "Preprocessing $1"
+exec xcrun clang++ -std="${CPPOBF_STD:-c++20}" -E -P "$1" > "$2"
