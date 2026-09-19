@@ -30,7 +30,9 @@ Options are --verify, --std <standard>, and --keep-temp. Run
 
 The compatibility stage removes digit separators only when an apostrophe is
 between two decimal digits. Ordinary and u8 raw strings are converted to
-escaped literals. Wide raw strings (uR, UR, and LR) are rejected because
+escaped literals. For C++17 and newer, the diagnostic string in a two-argument
+`static_assert` is removed before COBF sees it; the assertion condition is
+preserved verbatim. Wide raw strings (uR, UR, and LR) are rejected because
 converting them without a declared source encoding could change semantics.
 
 With --verify, cppobf runs Apple Clang syntax checking. On a failure, cppobf

@@ -20,6 +20,7 @@ struct ObfuscationReport {
   std::size_t verification_iterations = 0;
   std::size_t removed_digit_separators = 0;
   std::size_t converted_raw_strings = 0;
+  std::size_t removed_static_assert_messages = 0;
   std::filesystem::path temp_directory;
 };
 

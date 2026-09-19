@@ -92,8 +92,11 @@ int main(int argc, char* argv[]) {
               << "Preserved external identifiers: "
               << report.preserved_identifiers << '\n'
               << "Compatibility: removed "
-              << report.removed_digit_separators << " digit separators, converted "
-              << report.converted_raw_strings << " raw strings\n";
+              << report.removed_digit_separators
+              << " digit separators, converted "
+              << report.converted_raw_strings << " raw strings, removed "
+              << report.removed_static_assert_messages
+              << " static_assert messages\n";
     if (options.verify) {
       std::cout << "Verification: passed in " << report.verification_iterations
                 << " iteration(s)\n";

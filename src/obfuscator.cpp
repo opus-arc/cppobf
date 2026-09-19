@@ -171,6 +171,12 @@ std::string Trim(std::string line) {
   return line.substr(first, last - first + 1);
 }
 
+bool SupportsSingleArgumentStaticAssert(std::string_view standard) {
+  return standard == "c++17" || standard == "c++20" ||
+         standard == "c++23" || standard == "c++2b" ||
+         standard == "c++26";
+}
+
 std::string InlineCobfHeaders(std::string_view source,
                               const fs::path& directory) {
   std::istringstream lines{std::string(source)};
@@ -276,13 +282,16 @@ ObfuscationReport Obfuscator::Run(const ObfuscationOptions& options) const {
                   fs::perm_options::replace);
   const fs::path compatible_input = temporary.path() / "input.cpp";
   const CompatibilityResult compatibility =
-      MakeCobfCompatible(ReadFile(options.input));
+      MakeCobfCompatible(ReadFile(options.input),
+                         SupportsSingleArgumentStaticAssert(options.standard));
   WriteFile(compatible_input, compatibility.source);
 
   std::set<std::string> external_tokens = ReadTokens(preset);
   ObfuscationReport report;
   report.removed_digit_separators = compatibility.removed_digit_separators;
   report.converted_raw_strings = compatibility.converted_raw_strings;
+  report.removed_static_assert_messages =
+      compatibility.removed_static_assert_messages;
 
   for (std::size_t iteration = 1;
        iteration <= kMaximumVerificationIterations; ++iteration) {
