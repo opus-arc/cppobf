@@ -56,6 +56,43 @@ std::set<std::string> ReadTokens(const fs::path& path) {
   return tokens;
 }
 
+std::set<std::string> CLinkageSymbols(std::string_view source) {
+  // A C ABI declaration in an amalgamated input is an externally visible
+  // contract. Preserve its name even when its definition appears elsewhere.
+  const std::string text(source);
+  static const std::regex linkage(R"re(\bextern\s*"C"\s*)re");
+  static const std::regex function(R"(\b([A-Za-z_][A-Za-z_0-9]*)\s*\()");
+  static const std::regex declaration(
+      R"(\b([A-Za-z_][A-Za-z_0-9]*)\s*\([^;{}]*\)\s*;)");
+  std::set<std::string> symbols;
+  for (std::sregex_iterator match(text.begin(), text.end(), linkage), end;
+       match != end; ++match) {
+    const std::size_t after = static_cast<std::size_t>(match->position() +
+                                                        match->length());
+    if (after < text.size() && text[after] == '{') {
+      const std::size_t close = text.find('}', after + 1);
+      if (close == std::string::npos) continue;
+      const std::string block = text.substr(after + 1, close - after - 1);
+      for (std::sregex_iterator declaration_match(
+               block.begin(), block.end(), declaration), declaration_end;
+           declaration_match != declaration_end; ++declaration_match) {
+        symbols.insert((*declaration_match)[1].str());
+      }
+    } else {
+      const std::size_t semicolon = text.find(';', after);
+      const std::size_t brace = text.find('{', after);
+      const std::size_t stop = std::min(semicolon, brace);
+      if (stop == std::string::npos) continue;
+      const std::string declaration_text = text.substr(after, stop - after);
+      std::smatch function_match;
+      if (std::regex_search(declaration_text, function_match, function)) {
+        symbols.insert(function_match[1].str());
+      }
+    }
+  }
+  return symbols;
+}
+
 void WriteTokens(const fs::path& path, const std::set<std::string>& tokens) {
   std::ostringstream output;
   for (const std::string& token : tokens) output << token << '\n';
@@ -112,6 +149,18 @@ bool ClearlyExternal(std::string_view name, std::string_view diagnostic) {
       "co_return", "co_yield", "decltype", "final", "noexcept",
       "nullptr", "override", "requires", "static_assert", "thread_local"};
   if (keywords.contains(std::string(name))) return true;
+
+  // COBF also renames standard attribute names. Clang normally warns and
+  // ignores an unknown attribute, so make that warning an error below and
+  // preserve only a recognized standard attribute from the identifier map.
+  static const std::set<std::string> standard_attributes = {
+      "assume", "carries_dependency", "deprecated", "fallthrough",
+      "likely", "maybe_unused", "nodiscard", "no_unique_address",
+      "noreturn", "unlikely"};
+  if (diagnostic.find("unknown attribute") != std::string_view::npos &&
+      standard_attributes.contains(std::string(name))) {
+    return true;
+  }
 
   if (diagnostic.find("namespace 'std") != std::string_view::npos ||
       diagnostic.find("in 'std::") != std::string_view::npos) {
@@ -214,6 +263,15 @@ std::string InlineCobfHeaders(std::string_view source,
   return merged;
 }
 
+std::string RestoreLanguageLinkage(std::string_view source) {
+  // COBF encodes ordinary strings as hex escapes and may insert an empty
+  // adjacent literal. In an extern language-linkage declaration, C++ requires
+  // the single literal "C"; even equivalent escapes are invalid there.
+  static const std::regex c_linkage(
+      R"re(\bextern\s*(?:""\s*)?"\\x43")re");
+  return std::regex_replace(std::string(source), c_linkage, "extern \"C\" ");
+}
+
 void PublishAtomically(const fs::path& output, std::string_view contents) {
   fs::create_directories(output.parent_path());
   const fs::path temporary = output.string() + ".cppobf-new";
@@ -287,6 +345,9 @@ ObfuscationReport Obfuscator::Run(const ObfuscationOptions& options) const {
   WriteFile(compatible_input, compatibility.source);
 
   std::set<std::string> external_tokens = ReadTokens(preset);
+  const std::set<std::string> c_symbols =
+      CLinkageSymbols(compatibility.source);
+  external_tokens.insert(c_symbols.begin(), c_symbols.end());
   ObfuscationReport report;
   report.removed_digit_separators = compatibility.removed_digit_separators;
   report.converted_raw_strings = compatibility.converted_raw_strings;
@@ -317,8 +378,8 @@ ObfuscationReport Obfuscator::Run(const ObfuscationOptions& options) const {
                                cobf_result.output);
     }
 
-    std::string candidate =
-        InlineCobfHeaders(ReadFile(generated), generated.parent_path());
+    std::string candidate = RestoreLanguageLinkage(
+        InlineCobfHeaders(ReadFile(generated), generated.parent_path()));
     const fs::path candidate_path = round / "candidate.cpp";
     WriteFile(candidate_path, candidate);
     const auto map = ReadMap(map_path);
@@ -334,7 +395,7 @@ ObfuscationReport Obfuscator::Run(const ObfuscationOptions& options) const {
 
     const ProcessResult verification = ProcessRunner::Run(
         {"xcrun", "clang++", "-std=" + options.standard, "-fsyntax-only",
-         candidate_path.string()});
+         "-Werror=unknown-attributes", candidate_path.string()});
     WriteFile(round / "clang-diagnostics.txt", verification.output);
     if (verification.exit_code == 0) {
       PublishAtomically(absolute_output, candidate);

@@ -46,6 +46,11 @@ clearly place in the standard library or a known system API context. It stops
 with the diagnostics if a repair would require guessing that an identifier is
 external.
 
+Verification also treats unknown C++ attributes as errors, so a renamed
+standard attribute cannot be silently ignored. Simple `extern "C"` function
+declarations and definitions in the amalgamated input retain their C ABI names;
+check exported symbols against any public header before distributing a library.
+
 Temporary files are created under the system temporary directory and removed
 by default. This no-space location is required because COBF 1.06 does not quote
 the preprocessor command it constructs internally. --keep-temp retains the
