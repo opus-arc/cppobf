@@ -14,7 +14,12 @@ Apple Clang and the macOS command-line developer tools are required.
 
     brew install opus-arc/tap/cppobf
 
-The first binary release targets Apple Silicon macOS.
+Binary releases target Apple Silicon macOS.
+
+Before publishing a release, run the compatibility and end-to-end checks:
+
+    ./tests/run_tests.sh
+    ./tests/run_integration.sh
 
 ## Usage
 

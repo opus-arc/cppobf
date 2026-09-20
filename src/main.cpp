@@ -7,7 +7,7 @@
 
 namespace {
 
-constexpr const char* kVersion = "cppobf 0.1.0";
+constexpr const char* kVersion = "cppobf 0.1.1";
 
 void PrintHelp() {
   std::cout << R"(cppobf — C++ source obfuscation frontend for COBF
