@@ -7,7 +7,7 @@
 
 namespace {
 
-constexpr const char* kVersion = "cppobf 0.1.2";
+constexpr const char* kVersion = "cppobf 0.1.3";
 
 void PrintHelp() {
   std::cout << R"(cppobf — C++ source obfuscation frontend for COBF
@@ -21,6 +21,7 @@ Options:
       --std <standard>  C++ standard used for verification
                         Default: c++20
       --keep-temp       Keep intermediate COBF files
+      --preserve <file>  Extra external ABI names, one per line (repeatable)
   -h, --help            Show this help
   -v, --version         Show version
 
@@ -40,6 +41,9 @@ cppobf::ObfuscationOptions ParseArguments(int argc, char* argv[]) {
       options.verify = true;
     } else if (argument == "--keep-temp") {
       options.keep_temp = true;
+    } else if (argument == "--preserve") {
+      if (++index >= argc) throw std::runtime_error("--preserve needs a file.");
+      options.preserve_files.emplace_back(argv[index]);
     } else if (argument == "-o" || argument == "--output") {
       if (++index >= argc) throw std::runtime_error(argument + " needs a file.");
       options.output = argv[index];

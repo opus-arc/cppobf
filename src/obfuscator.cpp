@@ -310,7 +310,7 @@ ObfuscationReport Obfuscator::Run(const ObfuscationOptions& options) const {
   }
 
   const fs::path root = fs::weakly_canonical(installation_root_);
-  const fs::path cobf = root / "vendor/cobf/bin/cobf";
+  const fs::path cobf = root / "vendor/cppobf-backend/bin/cppobf-backend";
   const fs::path wrapper = root / "vendor/cobf/etc/pp_clang_cpp";
   const fs::path make_tokens = root / "vendor/cobf/etc/cc.mak";
   const fs::path cpp_tokens = root / "vendor/cobf/etc/cpp.tok";
@@ -345,6 +345,15 @@ ObfuscationReport Obfuscator::Run(const ObfuscationOptions& options) const {
   WriteFile(compatible_input, compatibility.source);
 
   std::set<std::string> external_tokens = ReadTokens(preset);
+  for (const fs::path& path : options.preserve_files) {
+    const auto extra = ReadTokens(path);
+    for (const auto& name : extra) {
+      if (!std::regex_match(name, std::regex("[A-Za-z_][A-Za-z_0-9]*"))) {
+        throw std::runtime_error("Invalid preserved identifier: " + name);
+      }
+    }
+    external_tokens.insert(extra.begin(), extra.end());
+  }
   const std::set<std::string> c_symbols =
       CLinkageSymbols(compatibility.source);
   external_tokens.insert(c_symbols.begin(), c_symbols.end());
@@ -395,7 +404,7 @@ ObfuscationReport Obfuscator::Run(const ObfuscationOptions& options) const {
 
     const ProcessResult verification = ProcessRunner::Run(
         {"xcrun", "clang++", "-std=" + options.standard, "-fsyntax-only",
-         "-Werror=unknown-attributes", candidate_path.string()});
+         "-Werror=unknown-attributes", "-ferror-limit=0", candidate_path.string()});
     WriteFile(round / "clang-diagnostics.txt", verification.output);
     if (verification.exit_code == 0) {
       PublishAtomically(absolute_output, candidate);

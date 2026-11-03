@@ -18,9 +18,18 @@ bool IsIdentifierCharacter(char character) {
 }
 
 bool IsDigitSeparator(std::string_view source, std::size_t position) {
-  return position > 0 && position + 1 < source.size() &&
-         std::isdigit(static_cast<unsigned char>(source[position - 1])) != 0 &&
-         std::isdigit(static_cast<unsigned char>(source[position + 1])) != 0;
+  if (position == 0 || position + 1 >= source.size()) return false;
+  const auto before = static_cast<unsigned char>(source[position - 1]);
+  const auto after = static_cast<unsigned char>(source[position + 1]);
+  if (std::isdigit(before) && std::isdigit(after)) return true;
+  if (!std::isxdigit(before) || !std::isxdigit(after)) return false;
+  // A-F are digits only in a numeric token starting with 0x, not u8'a'.
+  std::size_t start = position;
+  while (start > 0 && (IsIdentifierCharacter(source[start - 1]) ||
+                       source[start - 1] == '.' || source[start - 1] == '\'')) {
+    --start;
+  }
+  return source.substr(start, 2) == "0x" || source.substr(start, 2) == "0X";
 }
 
 std::string EncodeNarrowString(std::string_view content, std::string_view prefix) {

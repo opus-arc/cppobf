@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <filesystem>
 #include <string>
+#include <vector>
 
 namespace cppobf {
 
@@ -12,6 +13,7 @@ struct ObfuscationOptions {
   std::string standard = "c++20";
   bool verify = false;
   bool keep_temp = false;
+  std::vector<std::filesystem::path> preserve_files;
 };
 
 struct ObfuscationReport {

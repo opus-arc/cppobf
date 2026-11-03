@@ -7,7 +7,7 @@ trap 'rm -rf "$test_dir"' EXIT HUP INT TERM
 mkdir -p "$test_dir/with spaces"
 
 "$root/build.sh"
-"$root/cppobf" --version | grep -F 'cppobf 0.1.2' >/dev/null
+"$root/cppobf" --version | grep -F 'cppobf 0.1.3' >/dev/null
 xcrun clang++ -std=c++20 "$root/tests/integration_fixture.cpp" \
   -o "$test_dir/original"
 "$root/cppobf" "$root/tests/integration_fixture.cpp" \
@@ -24,6 +24,25 @@ nm -gU "$test_dir/obfuscated" | grep -E ' _ApiEntry$' >/dev/null
 "$test_dir/obfuscated" >"$test_dir/obfuscated.out"
 cmp "$test_dir/original.out" "$test_dir/obfuscated.out"
 
+for fixture in numeric system; do
+  xcrun clang++ -std=c++20 "$root/tests/${fixture}_fixture.cpp" \
+    -framework Accelerate -o "$test_dir/${fixture}_original"
+  "$root/cppobf" "$root/tests/${fixture}_fixture.cpp" \
+    -o "$test_dir/${fixture}_obfuscated.cpp" --verify
+  xcrun clang++ -std=c++20 "$test_dir/${fixture}_obfuscated.cpp" \
+    -framework Accelerate -o "$test_dir/${fixture}_obfuscated"
+  "$test_dir/${fixture}_original" >"$test_dir/${fixture}_original.out"
+  "$test_dir/${fixture}_obfuscated" >"$test_dir/${fixture}_obfuscated.out"
+  cmp "$test_dir/${fixture}_original.out" "$test_dir/${fixture}_obfuscated.out"
+done
+
+"$root/cppobf" "$root/tests/external_fixture.cpp" \
+  -o "$test_dir/external_obfuscated.cpp" --verify \
+  --preserve "$root/tests/external.tok"
+xcrun clang++ -std=c++20 "$test_dir/external_obfuscated.cpp" \
+  "$root/tests/external_definition.cpp" -o "$test_dir/external"
+"$test_dir/external"
+
 printf 'sentinel\n' >"$test_dir/with spaces/rejected.cpp"
 printf 'const char* text = LR"(unsupported)";\n' >"$test_dir/wide.cpp"
 if "$root/cppobf" "$test_dir/wide.cpp" \
@@ -33,6 +52,16 @@ if "$root/cppobf" "$test_dir/wide.cpp" \
   exit 1
 fi
 grep -F 'Wide raw string literals' "$test_dir/wide.err" >/dev/null
+printf 'sentinel\n' | cmp - "$test_dir/with spaces/rejected.cpp"
+
+printf 'not an identifier\n' >"$test_dir/invalid.tok"
+if "$root/cppobf" "$root/tests/numeric_fixture.cpp" \
+    -o "$test_dir/with spaces/rejected.cpp" --preserve "$test_dir/invalid.tok" \
+    >"$test_dir/preserve.out" 2>"$test_dir/preserve.err"; then
+  echo 'invalid preserve token should have been rejected' >&2
+  exit 1
+fi
+grep -F 'Invalid preserved identifier' "$test_dir/preserve.err" >/dev/null
 printf 'sentinel\n' | cmp - "$test_dir/with spaces/rejected.cpp"
 
 if "$root/cppobf" "$root/tests/integration_fixture.cpp" \

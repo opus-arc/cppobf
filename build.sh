@@ -2,6 +2,7 @@
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+python3 "$root/scripts/build_backend.py"
 xcrun clang++ \
   -std=c++20 \
   -O2 \

@@ -3,3 +3,5 @@
 /integration_test.log
 /release/
 .DS_Store
+/.build/
+/vendor/cppobf-backend/bin/

@@ -47,6 +47,10 @@ int main() {
          "constexpr auto mask = 0x80000000U;\nstatic_assert(N == 88);");
   Expect("single argument unchanged", "static_assert(ready<T, U>());",
          "static_assert(ready<T, U>());", 0);
+  Expect("hex separators and following assertion",
+         "constexpr auto a = 0xA'B.C'Dp-4; static_assert(a > 0, \"positive\");",
+         "constexpr auto a = 0xAB.CDp-4; static_assert(a > 0);");
+  Expect("UTF-8 character unchanged", "auto a = u8'a';", "auto a = u8'a';", 0);
   Expect("non-code occurrences unchanged",
          "// static_assert(false, \"comment\");\n"
          "const char* text = \"static_assert(false, \\\"text\\\")\";",
